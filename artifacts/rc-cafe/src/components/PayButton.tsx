@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { QRCodeSVG } from "qrcode.react";
-import { X, Wallet, CheckCircle2, ArrowRight, Smartphone } from "lucide-react";
+import { X, Wallet, CheckCircle2, ArrowRight, Smartphone, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type Step = "amount" | "scan" | "claim" | "done";
+
+const GOOGLE_REVIEW_URL = "https://g.page/r/CTwjCkOeiqqpEAE/review";
 
 export function PayButton() {
   const [open, setOpen] = useState(false);
@@ -14,8 +15,8 @@ export function PayButton() {
   const [name, setName] = useState("");
   const [upiId, setUpiId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [merchantUpi, setMerchantUpi] = useState("larcafe@upi");
-  const [merchantName, setMerchantName] = useState("LA RC Cafe");
+  const [merchantUpi, setMerchantUpi] = useState("khangltak-1@okaxis");
+  const [merchantName, setMerchantName] = useState("Thinlay Nubu");
 
   useEffect(() => {
     fetch("/api/bank-details")
@@ -30,8 +31,6 @@ export function PayButton() {
   const amtNum = parseFloat(amount);
   const cashback = isNaN(amtNum) ? 0 : Math.round(amtNum * 0.02);
 
-  // UPI deep link — opens Google Pay / PhonePe / any UPI app
-  const upiLink = `upi://pay?pa=${encodeURIComponent(merchantUpi)}&pn=${encodeURIComponent(merchantName)}&am=${amtNum || ""}&cu=INR&tn=LA+RC+Cafe+Payment`;
   const gpayLink = `gpay://upi/pay?pa=${encodeURIComponent(merchantUpi)}&pn=${encodeURIComponent(merchantName)}&am=${amtNum || ""}&cu=INR&tn=LA+RC+Cafe+Payment`;
 
   function reset() {
@@ -61,19 +60,38 @@ export function PayButton() {
 
   return (
     <>
-      {/* ── Floating PAY Button ── */}
-      <button
-        onClick={() => { setOpen(true); reset(); }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 font-bold uppercase tracking-widest text-sm shadow-xl hover:bg-primary/90 active:scale-95 transition-all"
-        aria-label="Pay with UPI"
-      >
-        <Wallet className="w-4 h-4" />
-        Pay
-      </button>
+      {/* ── Floating Buttons (bottom-right stack) ── */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+
+        {/* Google Review Button */}
+        <a
+          href={GOOGLE_REVIEW_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-white text-gray-800 px-4 py-2.5 font-bold text-xs uppercase tracking-widest shadow-xl hover:bg-gray-100 active:scale-95 transition-all border border-gray-200"
+          aria-label="Leave a Google Review"
+        >
+          <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+          Review Us
+        </a>
+
+        {/* PAY Button */}
+        <button
+          onClick={() => { setOpen(true); reset(); }}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 font-bold uppercase tracking-widest text-sm shadow-xl hover:bg-primary/90 active:scale-95 transition-all"
+          aria-label="Pay with UPI"
+        >
+          <Wallet className="w-4 h-4" />
+          Pay
+        </button>
+      </div>
 
       {/* ── Modal Backdrop ── */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={e => { if (e.target === e.currentTarget) { setOpen(false); reset(); } }}>
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={e => { if (e.target === e.currentTarget) { setOpen(false); reset(); } }}
+        >
           <div className="w-full max-w-sm bg-card border border-border text-foreground shadow-2xl flex flex-col">
 
             {/* Header */}
@@ -130,11 +148,17 @@ export function PayButton() {
                     <p className="text-3xl font-bold font-serif text-primary mt-2">Rs {Math.round(amtNum)}</p>
                   </div>
 
-                  {/* QR Code */}
-                  <div className="flex justify-center bg-white p-4 border border-border/50">
-                    <QRCodeSVG value={upiLink} size={180} />
+                  {/* Real UPI QR Image */}
+                  <div className="flex justify-center bg-white p-3 border border-border/50">
+                    <img
+                      src="/upi-qr.png"
+                      alt="UPI QR Code — Scan to Pay"
+                      className="w-44 h-44 object-contain"
+                    />
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">Google Pay, PhonePe, ya kisi bhi UPI app se scan karo</p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Google Pay, PhonePe, ya kisi bhi UPI app se scan karo
+                  </p>
 
                   {/* Direct GPay button */}
                   <a

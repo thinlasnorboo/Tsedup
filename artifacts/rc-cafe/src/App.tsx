@@ -16,6 +16,8 @@ import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import { CartProvider } from "@/context/CartContext";
+import { SplashScreen } from "@/components/SplashScreen";
+import { useState } from "react";
 
 const queryClient = new QueryClient();
 if (typeof document !== "undefined") document.documentElement.classList.add("dark");
@@ -50,10 +52,13 @@ function Router() {
 }
 
 function App() {
+  const [splashDone, setSplashDone] = useState(false);
+
   return (
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <TooltipProvider>
+          {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
           </WouterRouter>
