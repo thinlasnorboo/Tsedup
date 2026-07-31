@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import {
   LogOut, Activity, Calendar, Package, Utensils, MessageSquare,
   Trash2, Edit2, Plus, X, Images, CheckCircle2, XCircle, Link2, Building2, Copy,
-  Upload, ImageIcon, Eye, TrendingUp, ChevronUp, ChevronDown, LayoutDashboard, Wallet,
+  Upload, ImageIcon, Eye, TrendingUp, ChevronUp, ChevronDown, LayoutDashboard, Wallet, Smartphone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -1270,6 +1270,14 @@ export default function Admin() {
                 </Button>
               </div>
 
+              {/* How-to guide */}
+              <div className="bg-primary/10 border border-primary/20 p-4 mb-4 text-xs space-y-1">
+                <p className="font-bold uppercase tracking-widest text-primary mb-2">Cashback Bhejne ka Tarika</p>
+                <p className="text-muted-foreground">1. Neeche claim dekho → <strong className="text-foreground">"UPI se Bhejo"</strong> button dabao</p>
+                <p className="text-muted-foreground">2. Aapka UPI app khulega — amount aur UPI ID pehle se bhara hoga</p>
+                <p className="text-muted-foreground">3. Payment bhejo → wapas aao → <strong className="text-green-400">"Paid ✓"</strong> button dabao</p>
+              </div>
+
               {payments.length === 0 ? (
                 <div className="bg-card border border-border/50 p-12 text-center text-muted-foreground">
                   <Wallet className="w-10 h-10 mx-auto mb-3 opacity-20" />
@@ -1277,35 +1285,58 @@ export default function Admin() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {payments.map(p => (
-                    <div key={p.id} className="bg-card border border-border/50 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm">{p.customerName}</span>
-                          <Badge className={`text-xs rounded-none ${p.status === "paid" ? "bg-green-600" : p.status === "rejected" ? "bg-destructive" : "bg-yellow-600"}`}>
-                            {p.status === "paid" ? "✅ Paid" : p.status === "rejected" ? "❌ Rejected" : "⏳ Pending"}
-                          </Badge>
-                        </div>
-                        <p className="text-xs font-mono text-muted-foreground">{p.customerUpiId}</p>
-                        <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                          <span>Payment: <strong className="text-foreground">Rs {p.amount}</strong></span>
-                          <span>Cashback: <strong className="text-primary">Rs {p.cashbackAmount}</strong></span>
-                          <span>{new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                        </div>
+                  {payments.map(p => {
+                    const upiDeepLink = `upi://pay?pa=${encodeURIComponent(p.customerUpiId)}&pn=${encodeURIComponent(p.customerName)}&am=${p.cashbackAmount}&cu=INR&tn=LA+RC+Cafe+Cashback`;
+                    const gpayDeepLink = `gpay://upi/pay?pa=${encodeURIComponent(p.customerUpiId)}&pn=${encodeURIComponent(p.customerName)}&am=${p.cashbackAmount}&cu=INR&tn=LA+RC+Cafe+Cashback`;
+                    return (
+                    <div key={p.id} className="bg-card border border-border/50 p-4 space-y-3">
+                      {/* Top row: name + status + date */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-sm">{p.customerName}</span>
+                        <Badge className={`text-xs rounded-none ${p.status === "paid" ? "bg-green-600" : p.status === "rejected" ? "bg-destructive" : "bg-yellow-600"}`}>
+                          {p.status === "paid" ? "✅ Paid" : p.status === "rejected" ? "❌ Rejected" : "⏳ Pending"}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
                       </div>
+
+                      {/* UPI + amounts */}
+                      <div className="flex flex-wrap gap-4 text-xs">
+                        <span className="font-mono bg-muted px-2 py-1 text-foreground select-all">{p.customerUpiId}</span>
+                        <span className="text-muted-foreground">Paid: <strong className="text-foreground">Rs {p.amount}</strong></span>
+                        <span className="text-muted-foreground">Cashback Due: <strong className="text-primary text-sm">Rs {p.cashbackAmount}</strong></span>
+                      </div>
+
+                      {/* Action buttons */}
                       {p.status === "pending" && (
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {/* UPI deep link — sends money directly */}
+                          <a
+                            href={upiDeepLink}
+                            className="flex items-center gap-1.5 px-4 h-10 bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold uppercase tracking-widest text-xs transition-colors"
+                          >
+                            <Smartphone className="w-3.5 h-3.5" />
+                            UPI se Bhejo (Rs {p.cashbackAmount})
+                          </a>
+                          <a
+                            href={gpayDeepLink}
+                            className="flex items-center gap-1.5 px-3 h-10 bg-white border border-gray-300 text-gray-800 font-bold uppercase tracking-widest text-xs transition-colors hover:bg-gray-50"
+                          >
+                            GPay
+                          </a>
+                          {/* Mark as paid — after sending */}
                           <Button
                             size="sm"
-                            className="rounded-none uppercase tracking-widest text-xs bg-green-600 hover:bg-green-700 h-9 px-4"
+                            className="rounded-none uppercase tracking-widest text-xs bg-green-600 hover:bg-green-700 h-10 px-4"
                             onClick={() => handleUpdatePayment(p.id, "paid")}
                           >
-                            <CheckCircle2 className="w-3 h-3 mr-1" /> Paid
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Paid ✓
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            className="rounded-none uppercase tracking-widest text-xs border-destructive/50 text-destructive hover:bg-destructive hover:text-white h-9 px-4"
+                            className="rounded-none uppercase tracking-widest text-xs border-destructive/50 text-destructive hover:bg-destructive hover:text-white h-10 px-3"
                             onClick={() => handleUpdatePayment(p.id, "rejected")}
                           >
                             <XCircle className="w-3 h-3 mr-1" /> Reject
@@ -1313,7 +1344,8 @@ export default function Admin() {
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
