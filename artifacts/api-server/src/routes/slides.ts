@@ -31,7 +31,7 @@ router.post("/slides", async (req, res): Promise<void> => {
 });
 
 router.patch("/slides/:id", async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { imageUrl, videoUrl, title, subtitle, sortOrder, active } = req.body ?? {};
   const update: Record<string, unknown> = {};
@@ -47,7 +47,7 @@ router.patch("/slides/:id", async (req, res): Promise<void> => {
 });
 
 router.delete("/slides/:id", async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(heroSlidesTable).where(eq(heroSlidesTable.id, id));
   res.sendStatus(204);
