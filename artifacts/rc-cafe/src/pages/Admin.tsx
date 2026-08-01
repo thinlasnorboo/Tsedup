@@ -648,7 +648,7 @@ export default function Admin() {
     setFontSaving(true);
     await fetch("/api/font", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` }, body: JSON.stringify({ font: selectedFont }) });
     setFontSaving(false);
-    applyFont(selectedFont);
+    document.documentElement.style.setProperty("--font-family", selectedFont);
     toast({ title: `Font changed to ${selectedFont}` });
   };
 
